@@ -63,6 +63,13 @@ module.exports = {
         } catch (e) {
             implementationConfiguration = {};
         }
+        let routeConfiguration = routeSettings.configuration;
+        if(typeof(routeConfiguration) === 'function'){
+            routeConfiguration = await routeConfiguration(...args);
+        }
+        if(! routeConfiguration){
+            routeConfiguration = {};
+        }
 
         let url = routeSettings.url;
         if (typeof (url) === 'function') {
@@ -81,7 +88,7 @@ module.exports = {
             url,
             method,
             routeSettings.inFn(...args),
-            implementationConfiguration
+            { ...implementationConfiguration, ...routeConfiguration}
         );
 
         return routeSettings.outFn(rawResult);
