@@ -35,7 +35,14 @@ module.exports = {
             // The sails socket autoconnects when instantiated,
             // any request is queued until connection is available,
             // so we can start our calls without fear.
-            io.socket[method](url, args, (data, jwr) => resolve({data, jwr}));
+            io.socket[method](url, args, (data, jwr) => {
+                if(jwr.statusCode===200){
+                    resolve({data, jwr});
+                }
+                else {
+                    reject({data, jwr});
+                }
+            });
         });
     }
 };
