@@ -3,7 +3,7 @@ const sailsIOClient = require("sails.io.js");
 let io;
 let configured = false;
 
-function configure(configuration) {
+function configure(configuration, reject) {
     io = sailsIOClient(socketIOClient);
     io.reconnection = true;
     io.sails.url = configuration.url;
@@ -14,7 +14,13 @@ function configure(configuration) {
     // request to the CORS enabled server.
     // (Not sure how they inject script tags here, though)
     io.sails.useCORSRouteToGetCookie = false;
+    io.socket.on('connect_error', error => {
+        let err = new Error('connection error with socket server');
+        err.code = 500;
+        reject(err);
+    });
     configured = true;
+
 }
 
 module.exports = {
@@ -29,17 +35,16 @@ module.exports = {
             }
             //const io = sailsIOClient(socketIOClient/*, {pingTimeout: 3000}*/);
             if (!configured) {
-                configure(configuration);
+                configure(configuration, reject);
             }
 
             // The sails socket autoconnects when instantiated,
             // any request is queued until connection is available,
             // so we can start our calls without fear.
             io.socket[method](url, args, (data, jwr) => {
-                if(jwr.statusCode===200){
+                if (jwr.statusCode === 200) {
                     resolve({data, jwr});
-                }
-                else {
+                } else {
                     reject({data, jwr});
                 }
             });
